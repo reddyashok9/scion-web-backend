@@ -2,10 +2,15 @@ import { Router, Response } from "express";
 import { check, validationResult } from "express-validator/check";
 import HttpStatusCodes from "http-status-codes";
 import { checkRole } from "../../middleware/checkRole";
-
+import bcrypt from "bcryptjs";
+import config from "config";
 import auth from "../../middleware/auth";
 import Account, { IAccount } from "../../models/Account";
 import Request from "../../types/Request";
+import { IUser } from "../../models/User";
+import User from "../../models/User";
+import gravatar from "gravatar";
+import generatePassword from "password-generator";
 
 const router: Router = Router();
 
@@ -38,7 +43,7 @@ const router: Router = Router();
 // @desc    Create or update user's profile
 // @access  Private
 router.post(
-  "/",
+  "/", auth, checkRole(["SUPER_ADMIN"]),
   [
     auth,
     check("companyName", "Company Name is required").not().isEmpty(),
@@ -85,6 +90,33 @@ router.post(
 
       account = new Account(accountFields);
 
+
+      const options: gravatar.Options = {
+        s: "200",
+        r: "pg",
+        d: "mm"
+      };
+
+      let user: IUser = await User.findOne({ adminEmail });
+
+      const avatar = gravatar.url(adminEmail, options);
+
+      const salt = await bcrypt.genSalt(10);
+      const hashed = await bcrypt.hash(generatePassword(9, false), salt);
+
+      // Build user object based on IUser
+      const userFields = {
+        adminEmail,
+        password: hashed,
+        avatar,
+        role: config.get("ROLES.ADMIN")
+      };
+
+
+      user = new User(userFields);
+
+      await user.save();
+
       await account.save();
 
       res.json({});
@@ -99,7 +131,7 @@ router.post(
 // @route   GET api/account
 // @desc    Get all accounts
 // @access  Public
-router.get("/", auth, async (_req: Request, res: Response) => {
+router.get("/", auth, checkRole(["SUPER_ADMIN"]), async (_req: Request, res: Response) => {
   try {
     const accounts = await Account.find();
     res.json(accounts);
@@ -112,7 +144,7 @@ router.get("/", auth, async (_req: Request, res: Response) => {
 // @route   GET api/account/:accountId
 // @desc    Get account by accountId
 // @access  Public
-router.get("/:accountId", auth, checkRole(["USER"]) , async (req: Request, res: Response) => {
+router.get("/:accountId", auth, checkRole(["USER", "SUPER_USER"]) , async (req: Request, res: Response) => {
   try {
     const account: IAccount = await Account.findOne({
       _id: req.params.accountId,
