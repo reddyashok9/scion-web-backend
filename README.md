@@ -1,10 +1,5 @@
 # Mongoose Node.js Express TypeScript application boilerplate with best practices for API development.
 
-![image](https://user-images.githubusercontent.com/10678997/57565876-01281b00-73f8-11e9-8d86-911faa4a6c0f.png)
-
-The main purpose of this repository is to show a good end-to-end project setup and workflow for writing a Mongoose Node.js Express code in TypeScript complete with middleware, models, routes, and types.
-
-This example comes with a complete REST API to handle Authentication and CRUD features on Users and their corresponding Profile. You may view the API documentation on the [Wiki](https://github.com/polcham/mongoose-express-ts/wiki).
 
 # Why TypeScript?
 
@@ -22,7 +17,7 @@ To build and run this app locally you will need a few things:
 - Clone the repository
 
 ```
-git clone --depth=1 https://github.com/polcham/mongoose-express-ts.git <project_name>
+git clone --depth=1 https://github.com/reddyashok9/scion-web-backend.git <project_name>
 ```
 
 - Install dependencies
