@@ -8,7 +8,8 @@ import { IUser } from "./User";
  * @param adminName:string
  * @param adminEmail:string
  * @param adminContactNo:string
- * @param createdBy:ref => User._id;
+ * @param status: boolean
+ * @param createdBy:ref => User._id
  */
 export interface IAccount extends Document {
   companyName: string;
@@ -16,6 +17,7 @@ export interface IAccount extends Document {
   adminEmail: string;
   adminContactNo: number;
   features: Array<string>;
+  status: boolean;
   createdBy: IUser["_id"];
 }
 
@@ -37,6 +39,10 @@ const accountSchema: Schema = new Schema({
     type: Number,
     required: true,
   },
+  status: {
+    type: Boolean,
+    required: true,
+  },
   features: [{
     type: String,
   }],
@@ -44,7 +50,7 @@ const accountSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User"
   }
-});
+},{ timestamps: true });
 
 const Account: Model<IAccount> = model("Account", accountSchema);
 

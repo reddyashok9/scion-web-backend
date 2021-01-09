@@ -11,6 +11,7 @@ import { IUser } from "../../models/User";
 import User from "../../models/User";
 import gravatar from "gravatar";
 import generatePassword from "password-generator";
+import sgMailSender from "../../utils/mailer";
 
 const router: Router = Router();
 
@@ -55,6 +56,7 @@ router.post(
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
+    console.log(errors.isEmpty());
     if (!errors.isEmpty()) {
       return res
         .status(HttpStatusCodes.BAD_REQUEST)
@@ -71,14 +73,16 @@ router.post(
       adminEmail,
       adminContactNo,
       features,
+      status: true,
       createdBy: req.userId
     };
 
     try {
       
       let account: IAccount = await Account.findOne({ adminEmail });
+      let user: IUser = await User.findOne({ email: adminEmail });
 
-      if (account) {
+      if (account || user) {
         return res.status(HttpStatusCodes.BAD_REQUEST).json({
           errors: [
             {
@@ -90,6 +94,7 @@ router.post(
 
       account = new Account(accountFields);
 
+      await account.save();
 
       const options: gravatar.Options = {
         s: "200",
@@ -97,29 +102,43 @@ router.post(
         d: "mm"
       };
 
-      let user: IUser = await User.findOne({ adminEmail });
 
       const avatar = gravatar.url(adminEmail, options);
+      const password = generatePassword(9, false);
 
       const salt = await bcrypt.genSalt(10);
-      const hashed = await bcrypt.hash(generatePassword(9, false), salt);
+      const hashed = await bcrypt.hash(password, salt);
 
       // Build user object based on IUser
       const userFields = {
-        adminEmail,
+        email: adminEmail,
         password: hashed,
         avatar,
+        account: account._id,
         role: config.get("ROLES.ADMIN")
       };
 
 
       user = new User(userFields);
 
+      console.log(user);
+
       await user.save();
 
-      await account.save();
+      
 
-      res.json({});
+      const mail = {
+        name: adminName,
+        email: adminEmail,
+        password: password,
+        link: "http://localhost:3000/",
+        templateId: config.get('mailer.templates.welcome_admin'),
+        subject: 'Welcome to Scion Portal'
+      }
+
+      await sgMailSender(mail);
+
+      res.status(HttpStatusCodes.CREATED).json(account);
 
     } catch (err) {
       console.error(err.message);

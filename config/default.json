@@ -6,5 +6,14 @@
     "ADMIN": "ADMIN",
     "USER": "USER",
     "SUPER_ADMIN": "SUPER_ADMIN"
+  },
+  "mailer": {
+    "API_KEY": "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",
+    "templates": {
+      "welcome_admin": "d-b12715ee7c424a68b5c294aba310d52d",
+      "password_reset_confirm": "",
+      "password_reset": "",
+      "add_user": ""
+    }
   }
 }

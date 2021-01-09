@@ -6,13 +6,11 @@ import { IUser } from "./User";
  * @param user:ref => User._id
  * @param firstName:string
  * @param lastName:string
- * @param username:string
  */
 export interface IProfile extends Document {
   user: IUser["_id"];
   firstName: string;
   lastName: string;
-  username: string;
 }
 
 const profileSchema: Schema = new Schema({
@@ -27,17 +25,8 @@ const profileSchema: Schema = new Schema({
   lastName: {
     type: String,
     required: true
-  },
-  username: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  date: {
-    type: Date,
-    default: Date.now
   }
-});
+},{ timestamps: true });
 
 const Profile: Model<IProfile> = model("Profile", profileSchema);
 

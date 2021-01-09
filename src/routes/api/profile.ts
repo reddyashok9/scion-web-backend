@@ -6,6 +6,7 @@ import auth from "../../middleware/auth";
 import Profile, { IProfile } from "../../models/Profile";
 import Request from "../../types/Request";
 import User, { IUser } from "../../models/User";
+import { checkRole } from "../../middleware/checkRole";
 
 const router: Router = Router();
 
@@ -43,7 +44,6 @@ router.post(
     auth,
     check("firstName", "First Name is required").not().isEmpty(),
     check("lastName", "Last Name is required").not().isEmpty(),
-    check("username", "Username is required").not().isEmpty(),
   ],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -60,7 +60,6 @@ router.post(
       user: req.userId,
       firstName,
       lastName,
-      username,
     };
 
     try {
@@ -104,9 +103,9 @@ router.post(
 // @route   GET api/profile
 // @desc    Get all profiles
 // @access  Public
-router.get("/", async (_req: Request, res: Response) => {
+router.get("/", auth, checkRole(["SUPER_ADMIN"]),async (_req: Request, res: Response) => {
   try {
-    const profiles = await Profile.find().populate("user", ["avatar", "email"]);
+    const profiles = await Profile.find().populate("user", ["avatar", "email", "role"]);
     res.json(profiles);
   } catch (err) {
     console.error(err.message);
@@ -121,7 +120,7 @@ router.get("/user/:userId", async (req: Request, res: Response) => {
   try {
     const profile: IProfile = await Profile.findOne({
       user: req.params.userId,
-    }).populate("user", ["avatar", "email"]);
+    }).populate("user", ["avatar", "email", "role"]);
 
     if (!profile)
       return res
@@ -143,7 +142,7 @@ router.get("/user/:userId", async (req: Request, res: Response) => {
 // @route   DELETE api/profile
 // @desc    Delete profile and user
 // @access  Private
-router.delete("/", auth, async (req: Request, res: Response) => {
+router.delete("/", auth, checkRole(["SUPER_ADMIN", "ADMIN"]), async (req: Request, res: Response) => {
   try {
     // Remove profile
     await Profile.findOneAndRemove({ user: req.userId });

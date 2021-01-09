@@ -1,16 +1,20 @@
 import { Document, Model, model, Schema } from "mongoose";
+import { IAccount } from "./Account";
 
 /**
  * Interface to model the User Schema for TypeScript.
  * @param email:string
  * @param password:string
  * @param avatar:string
+ * @param role: string
+ * @param account: string
  */
 export interface IUser extends Document {
   email: string;
   password: string;
   avatar: string;
   role: string;
+  account: IAccount["_id"];
 }
 
 const userSchema: Schema = new Schema({
@@ -29,6 +33,10 @@ const userSchema: Schema = new Schema({
   role: {
     type: String,
     required: true,
+  },
+  account: {
+    type: Schema.Types.ObjectId,
+    ref: "Account"
   },
 }, { timestamps: true });
 

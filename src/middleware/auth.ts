@@ -27,6 +27,7 @@ export default function(req: Request, res: Response, next: NextFunction) {
       .json({ msg: "Token is not valid" });
   }
 
+  console.log(payload);
   const { userId, role } = payload;
   const newToken = jwt.sign({ userId, role }, config.get("jwtSecret"), {
     expiresIn: config.get("jwtExpiration")
